@@ -1,25 +1,35 @@
-import logo from './logo.svg';
-import './App.css';
+import "./App.css";
+import Header from "./components/header";
+import CitySelection from "./components/city-selection";
+import { styled } from "styled-components";
+import Map from "./components/map";
+import Favorites from "./components/favorites";
+import { useState } from "react";
+import "leaflet/dist/leaflet.css";
+
+const MapAndFavoritesContainer = styled.div`
+	display: flex;
+	gap: 2rem;
+`;
 
 function App() {
-  return (
-    <div className="App">
-      <header className="App-header">
-        <img src={logo} className="App-logo" alt="logo" />
-        <p>
-          Edit <code>src/App.js</code> and save to reload.
-        </p>
-        <a
-          className="App-link"
-          href="https://reactjs.org"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          Learn React
-        </a>
-      </header>
-    </div>
-  );
+	const [favoriteCities, updateFavoriteCities] = useState([]);
+	return (
+		<div className="App">
+			<Header className="App-header">World weather dashboard</Header>
+			<CitySelection
+				favorites={favoriteCities}
+				updateFavorites={updateFavoriteCities}
+			/>
+			<MapAndFavoritesContainer>
+				<Map items={favoriteCities} />
+				<Favorites
+					favorites={favoriteCities}
+					updateFavorites={updateFavoriteCities}
+				/>
+			</MapAndFavoritesContainer>
+		</div>
+	);
 }
 
 export default App;
