@@ -1,5 +1,7 @@
 import { styled } from "styled-components";
 import { Draggable } from "react-beautiful-dnd";
+import { useContext } from "react";
+import FavoritesContext from "../context/favorites-context";
 
 const FavoriteContainer = styled.div`
 	border: 1px solid lightgrey;
@@ -19,16 +21,14 @@ const Delete = styled.button`
 	border: none;
 `;
 
-const FavoriteItem = ({ item, index, updateFavorites }) => {
+const FavoriteItem = ({ item, index }) => {
+	const { deleteFavoriteCity } = useContext(FavoritesContext);
 	const handleDelete = () => {
-		updateFavorites((prevFavorites) => {
-			const newFavorites = [...prevFavorites];
-			newFavorites.splice(index, 1);
-			return newFavorites;
-		});
+		deleteFavoriteCity({ index });
 	};
+
 	return (
-		<Draggable draggableId={item.id} index={index} key={item.id}>
+		<Draggable draggableId={item.name} index={index} key={item.name}>
 			{(provided) => (
 				<FavoriteContainer
 					{...provided.draggableProps}

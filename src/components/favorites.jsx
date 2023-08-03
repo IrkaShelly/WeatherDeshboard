@@ -2,7 +2,8 @@ import { styled } from "styled-components";
 import { DragDropContext, Droppable } from "react-beautiful-dnd";
 
 import FavoriteItem from "./favorite-item";
-import { useEffect, useState } from "react";
+import { useContext } from "react";
+import FavoritesContext from "../context/favorites-context";
 
 const FavoritesContainer = styled.div`
 	background-color: var(--color-light--1);
@@ -13,7 +14,6 @@ const FavoritesContainer = styled.div`
 	border: 1px solid lightgray;
 	border-radius: 2px;
 	color: var(--color-dark--2);
-	overflow-y: scroll;
 `;
 
 const Title = styled.h2`
@@ -26,16 +26,8 @@ const TaskList = styled.div`
 	padding: 0.8rem;
 `;
 
-const Favorites = ({ favorites, updateFavorites }) => {
-	const [reordered, setReordered] = useState(false);
-
-	useEffect(() => {
-		if (reordered) return;
-		updateFavorites((prevFavorites) => {
-			const sortedFavorites = [...prevFavorites];
-			return sortedFavorites.sort((a, b) => a.temperature - b.temperature);
-		});
-	}, [favorites, reordered]);
+const Favorites = () => {
+	const { favorites, reorderFavorites } = useContext(FavoritesContext);
 
 	const handleDragEnd = (result) => {
 		console.log(favorites);
@@ -43,16 +35,7 @@ const Favorites = ({ favorites, updateFavorites }) => {
 		if (!destination) return;
 		if (destination.index === source.index) return;
 
-		setReordered(true);
-
-		updateFavorites((prevFavorites) => {
-			let newFavorites = [...prevFavorites];
-			console.log(newFavorites);
-			newFavorites.splice(source.index, 1);
-			newFavorites.splice(destination.index, 0, prevFavorites[source.index]);
-			console.log(newFavorites);
-			return newFavorites;
-		});
+		reorderFavorites({ origIndex: source.index, newIndex: destination.index });
 	};
 	return (
 		<DragDropContext onDragEnd={handleDragEnd}>
@@ -62,12 +45,7 @@ const Favorites = ({ favorites, updateFavorites }) => {
 					{(provided) => (
 						<TaskList ref={provided.innerRef} {...provided.droppableProps}>
 							{favorites.map((item, index) => (
-								<FavoriteItem
-									key={item.id}
-									item={item}
-									index={index}
-									updateFavorites={updateFavorites}
-								/>
+								<FavoriteItem key={item.name} item={item} index={index} />
 							))}
 							{provided.placeholder}
 						</TaskList>
