@@ -1,7 +1,9 @@
 import { styled } from "styled-components";
-import { useEffect, useState } from "react";
-import { v4 as uuidv4 } from "uuid";
+import { useContext, useEffect, useState } from "react";
+
 import StarSVG from "../assets/icons/star.svg";
+import FavoritesContext from "../context/favorites-context";
+import { fetchCityWeather } from "../api/weather.api";
 
 const CitySelectionSection = styled.section`
 	background-color: var(--color-light--1);
@@ -65,14 +67,15 @@ const Temperature = styled.div`
 	font-size: 2rem;
 	padding: 0.4rem;
 	border-radius: 0.3rem;
-	background-color: ${({ temp }) =>
-		`hsl(${30 + (140 * (30 - temp)) / 60} , 70%, 50%)`};
+	background-color: ${({ $temp }) =>
+		`hsl(${30 + (140 * (30 - $temp)) / 60} , 70%, 50%)`};
 `;
 
-const CitySelection = ({ favorites, updateFavorites }) => {
+const CitySelection = () => {
+	const { favorites, addNewCityToFavorites } = useContext(FavoritesContext);
 	const [city, setCity] = useState(null);
-	const [temp, setTemp] = useState(null);
-	const [coord, setCoord] = useState(null);
+	const [temp, setTemp] = useState(0);
+	const [coordinates, setCoordinated] = useState(null);
 	const [selectedIsFavorite, setSelectedIsFavorite] = useState(false);
 
 	const handleCitySelection = (e) => {
@@ -80,25 +83,15 @@ const CitySelection = ({ favorites, updateFavorites }) => {
 	};
 
 	useEffect(() => {
-		// declare the data fetching function
-		const fetchData = async (city) => {
-			const data = await fetch(
-				`https://api.openweathermap.org/data/2.5/weather?q=${city}&appid=2d64125ab063c9fad7c95991454f7afb&units=metric`
-			);
-			const json = await data.json();
-			const {
-				main: { temp },
-				coord,
-			} = json;
-
-			if (temp) setTemp(Math.round(temp));
-			if (coord) setCoord(coord);
-			return json;
-		};
-
-		if (city) fetchData(city).catch(console.error);
+		if (city)
+			fetchCityWeather(city)
+				.then(({ temperature, coordinates }) => {
+					setTemp(temperature);
+					setCoordinated(coordinates);
+				})
+				.catch(console.error);
 		else setTemp(null);
-	}, [city]);
+	}, [city, addNewCityToFavorites]);
 
 	useEffect(() => {
 		if (favorites.find((item) => item.name === city))
@@ -108,15 +101,7 @@ const CitySelection = ({ favorites, updateFavorites }) => {
 
 	const handleSubmit = (e) => {
 		e.preventDefault();
-
-		updateFavorites((prevFavorites) => {
-			if (prevFavorites.find((item) => item.name === city))
-				return prevFavorites;
-			return [
-				...prevFavorites,
-				{ name: city, temperature: temp, coordinates: coord, id: uuidv4() },
-			];
-		});
+		addNewCityToFavorites({ name: city, temperature: temp, coordinates });
 	};
 
 	return (
@@ -139,7 +124,7 @@ const CitySelection = ({ favorites, updateFavorites }) => {
 					))}
 				</select>
 				{city && <SelectedCity>{city}</SelectedCity>}
-				{temp && <Temperature temp={temp}>{temp}&deg;</Temperature>}
+				{temp && <Temperature $temp={temp}>{temp}&deg;</Temperature>}
 				{city && (
 					<AddToFavorites title="Add to favorites">
 						<StarSVG shouldFill={selectedIsFavorite} />

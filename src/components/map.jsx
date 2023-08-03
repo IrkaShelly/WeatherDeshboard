@@ -2,6 +2,8 @@ import { styled } from "styled-components";
 import { MapContainer, Marker, Popup, TileLayer } from "react-leaflet";
 
 import L from "leaflet";
+import { useContext } from "react";
+import FavoritesContext from "../context/favorites-context";
 delete L.Icon.Default.prototype._getIconUrl;
 
 L.Icon.Default.mergeOptions({
@@ -16,7 +18,8 @@ const Container = styled.div`
 
 const LONDON_COORDS = [51.505, -0.09];
 
-const Map = ({ items }) => {
+const Map = () => {
+	const { favorites: items } = useContext(FavoritesContext);
 	const position =
 		items && items.length > 0
 			? [items[0].coordinates.lat, items[0].coordinates.lon]
